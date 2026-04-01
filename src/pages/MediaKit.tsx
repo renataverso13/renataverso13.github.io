@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll } from 'motion/react';
+import { Instagram, Youtube } from 'lucide-react';
 import { useData } from '../context/DataContext';
+
+const TikTokIcon = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
 
 export const MediaKit: React.FC = () => {
   const { data } = useData();
@@ -54,6 +61,11 @@ export const MediaKit: React.FC = () => {
       <div className="fixed top-[300px] left-0 w-full text-center z-0 flex flex-col items-center">
         <h1 className="font-serif font-bold text-[#cd3b8c] text-4xl mb-1">Renata Lugon</h1>
         <p className="text-[#cd3b8c] font-medium mb-4">Vídeos literários</p>
+        <div className="flex gap-4 relative group">
+          <a href={data.settings.instagram} target="_blank" rel="noopener noreferrer" className="text-[#cd3b8c] hover:text-[#cd3b8c] transition-colors"><Instagram size={24} /></a>
+          <a href={data.settings.tiktok} target="_blank" rel="noopener noreferrer" className="text-[#cd3b8c] hover:text-[#cd3b8c] transition-colors"><TikTokIcon size={24} /></a>
+          <a href={data.settings.youtube} target="_blank" rel="noopener noreferrer" className="text-[#cd3b8c] hover:text-[#cd3b8c] transition-colors"><Youtube size={24} /></a>
+        </div>
       </div>
 
       {/* Transparent Spacer - allows fixed text behind to be visible */}

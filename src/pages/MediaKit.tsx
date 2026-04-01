@@ -1,9 +1,18 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll } from 'motion/react';
 import { useData } from '../context/DataContext';
 
 export const MediaKit: React.FC = () => {
   const { data } = useData();
+  const { scrollY } = useScroll();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    return scrollY.on("change", (latest) => {
+      const scrolled = latest > 30;
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
+    });
+  }, [scrollY]);
   const [stats] = useState({
     followers: 250,
     reach: 12500,
@@ -40,14 +49,28 @@ export const MediaKit: React.FC = () => {
   ];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="w-full bg-[#fcf7f9] min-h-screen"
-    >
-      {/* Main Content */}
-      <div className="px-6 pb-12 pt-[320px] max-w-6xl mx-auto">
+    <div className="relative z-10">
+      {/* Fixed Text Behind Content */}
+      <div className="fixed top-[300px] left-0 w-full text-center z-0 flex flex-col items-center">
+        <h1 className="font-serif font-bold text-[#cd3b8c] text-4xl mb-1">Renata Lugon</h1>
+        <p className="text-[#cd3b8c] font-medium mb-4">Vídeos literários</p>
+      </div>
+
+      {/* Transparent Spacer - allows fixed text behind to be visible */}
+      <div 
+        className="transition-all duration-300 ease-in-out" 
+        style={{ height: isScrolled ? '260px' : '480px' }} 
+      />
+      
+      {/* Content with Background - covers the fixed text as it scrolls up */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="w-full bg-[#fcf7f9] min-h-screen"
+      >
+        {/* Main Content */}
+        <div className="px-6 pb-12 max-w-6xl mx-auto">
         
         {/* About Section */}
         <motion.div 
@@ -184,8 +207,8 @@ export const MediaKit: React.FC = () => {
               <span className="font-semibold">@renataverso</span>
             </a>
           </div>
-        </motion.div>
-      </div>
-    </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 };

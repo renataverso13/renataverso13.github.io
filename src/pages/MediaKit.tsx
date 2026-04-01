@@ -79,7 +79,7 @@ export const MediaKit: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="w-full bg-[#fcf7f9] min-h-screen"
+        className="w-full bg-[#fcf7f9] min-h-screen relative z-10"
       >
         {/* Main Content */}
         <div className="px-6 pb-12 max-w-6xl mx-auto">

@@ -207,6 +207,7 @@ export const MediaKit: React.FC = () => {
               <span className="font-semibold">@renataverso</span>
             </a>
           </div>
+        </motion.div>
         </div>
       </motion.div>
     </div>

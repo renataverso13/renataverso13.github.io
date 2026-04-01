@@ -9,7 +9,7 @@ export const Header: React.FC = () => {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
   
-  const isHome = location.pathname === '/' || location.pathname === '/dev';
+  const isHome = location.pathname === '/' || location.pathname === '/dev' || location.pathname === '/mediakit';
 
   useEffect(() => {
     return scrollY.on("change", (latest) => {
@@ -32,7 +32,7 @@ export const Header: React.FC = () => {
     left: (isHome && isScrolled) ? 24 : '50%',
     x: (isHome && isScrolled) ? 0 : '-50%',
     size: isHome ? (isScrolled ? 50 : 224) : 120,
-    borderRadius: isHome ? '160px 160px 0 0' : '100px 100px 0 0'
+    borderRadius: isHome ? (location.pathname === '/mediakit' && !isScrolled ? '40px' : '160px 160px 0 0') : '100px 100px 0 0'
   };
 
   return (

@@ -47,58 +47,20 @@ export const MediaKit: React.FC = () => {
       className="w-full bg-[#fcf7f9] min-h-screen"
     >
       {/* Main Content */}
-      <div className="px-6 pb-12 pt-[280px] max-w-6xl mx-auto">
+      <div className="px-6 pb-12 pt-[320px] max-w-6xl mx-auto">
         
-        {/* Hero Section */}
+        {/* About Section */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex flex-col md:flex-row gap-8 mb-12 items-start md:items-center"
+          className="mb-12"
         >
-          {/* Profile Image */}
-          <div className="flex-shrink-0">
-            <div className="w-48 h-56 rounded-[40px] border-4 border-magenta overflow-hidden shadow-lg">
-              <img 
-                src={data.settings.profileImage} 
-                alt="Renata Lugon" 
-                className="w-full h-full object-cover" 
-                referrerPolicy="no-referrer" 
-              />
-            </div>
-          </div>
-
-          {/* Name and Bio */}
-          <div className="flex-1">
-            <motion.h1 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="font-serif text-5xl md:text-6xl font-bold text-magenta mb-2 leading-tight"
-            >
-              Renata<br />Lugon
-            </motion.h1>
-            
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-magenta text-lg font-semibold mb-6"
-            >
-              Vídeos literários
-            </motion.p>
-
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="bg-white rounded-2xl p-6 border border-magenta/20"
-            >
-              <h3 className="font-bold text-magenta text-lg mb-3">Sobre mim</h3>
-              <p className="text-gray-700 leading-relaxed">
-                Criadora de conteúdo literário que compartilha leituras, indicações e unboxings de forma autêntica, criativa e apaixonada.
-              </p>
-            </motion.div>
+          <div className="bg-white rounded-2xl p-8 border border-magenta/20 shadow-sm">
+            <h3 className="font-bold text-magenta text-2xl mb-4">Sobre mim</h3>
+            <p className="text-gray-700 text-lg leading-relaxed">
+              Criadora de conteúdo literário que compartilha leituras, indicações e unboxings de forma autêntica, criativa e apaixonada.
+            </p>
           </div>
         </motion.div>
 

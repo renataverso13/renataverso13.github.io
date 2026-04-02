@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useScroll } from 'motion/react';
-import { BookOpen, Tablet, Heart, Trophy, Link as LinkIcon, Play, Instagram, Youtube, Plus, Trash2, Save, Edit2, Key, Loader2 } from 'lucide-react';
+import { motion, useScroll, AnimatePresence } from 'motion/react';
+import { BookOpen, Tablet, Heart, Trophy, Link as LinkIcon, Play, Instagram, Youtube, Plus, Trash2, Save, Edit2, Key, Loader2, Settings, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { EditSocialModal } from '../components/EditSocialModal';
@@ -48,6 +48,7 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
   const [isLoading, setIsLoading] = useState(!cachedInstagramFeed);
   const [isSaving, setIsSaving] = useState(false);
   const [githubToken, setGithubToken] = useState('');
+  const [isTokenPanelOpen, setIsTokenPanelOpen] = useState(false);
   const navigate = useNavigate();
 
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
@@ -106,6 +107,7 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
 
   const handleSave = async () => {
     if (!githubToken) {
+      setIsTokenPanelOpen(true);
       alert('Por favor, insira seu Token do GitHub no campo que aparece no topo para salvar permanentemente.');
       return;
     }
@@ -154,21 +156,43 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
   return (
     <div className="relative z-10">
       {isDev && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[340px] px-4">
-          <div className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-[#ea92be] flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-[#cd3b8c] text-xs font-bold mb-1">
-              <Key size={14} />
-              <span>TOKEN DO GITHUB</span>
-            </div>
-            <input 
-              type="password"
-              placeholder="Cole seu token aqui..."
-              value={githubToken}
-              onChange={(e) => setGithubToken(e.target.value)}
-              className="w-full px-3 py-2 border border-[#ea92be] rounded-xl text-sm focus:ring-2 focus:ring-magenta focus:outline-none bg-white"
-            />
-          </div>
-        </div>
+        <>
+          <button 
+            onClick={() => setIsTokenPanelOpen(!isTokenPanelOpen)}
+            className="fixed top-4 left-4 z-[110] bg-[#ea92be] text-white p-2.5 rounded-full shadow-xl hover:bg-[#cd3b8c] transition-all active:scale-95"
+            title="Configurações de Deploy"
+          >
+            {isTokenPanelOpen ? <X size={24} /> : <Settings size={24} />}
+          </button>
+
+          <AnimatePresence>
+            {isTokenPanelOpen && (
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="fixed top-16 left-4 z-[100] w-full max-w-[300px]"
+              >
+                <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border-2 border-[#ea92be] flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-[#cd3b8c] text-xs font-black tracking-wider">
+                    <Key size={14} />
+                    <span>GITHUB TOKEN</span>
+                  </div>
+                  <input 
+                    type="password"
+                    placeholder="Cole seu token aqui..."
+                    value={githubToken}
+                    onChange={(e) => setGithubToken(e.target.value)}
+                    className="w-full px-3 py-2.5 border-2 border-[#ea92be]/30 rounded-xl text-sm focus:border-[#ea92be] focus:outline-none bg-white transition-colors"
+                  />
+                  <p className="text-[10px] text-[#cd3b8c]/70 leading-tight">
+                    O token é necessário para salvar as alterações permanentemente no GitHub.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
       )}
 
       <div className="fixed top-[300px] left-0 w-full text-center z-0 flex flex-col items-center">

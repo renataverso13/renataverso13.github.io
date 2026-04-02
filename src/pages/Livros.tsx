@@ -61,7 +61,7 @@ export const Livros: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
         <>
           <button 
             onClick={() => setIsTokenPanelOpen(!isTokenPanelOpen)}
-            className="fixed top-4 left-4 z-[110] bg-[#ea92be] text-white p-2.5 rounded-full shadow-xl hover:bg-[#cd3b8c] transition-all active:scale-95"
+            className="fixed top-4 left-4 z-[9999] bg-[#ea92be] text-white p-2.5 rounded-full shadow-xl hover:bg-[#cd3b8c] transition-all active:scale-95"
             title="Configurações de Deploy"
           >
             {isTokenPanelOpen ? <X size={24} /> : <Settings size={24} />}
@@ -73,7 +73,7 @@ export const Livros: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="fixed top-16 left-4 z-[100] w-full max-w-[300px]"
+                className="fixed top-16 left-4 z-[9999] w-full max-w-[300px]"
               >
                 <div className="bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border-2 border-[#ea92be] flex flex-col gap-3">
                   <div className="flex items-center gap-2 text-[#cd3b8c] text-xs font-black tracking-wider">

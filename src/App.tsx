@@ -31,7 +31,7 @@ const AnimatedRoutes = () => {
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/ranking/dev" element={<Ranking isDev />} />
         <Route path="/mediakit" element={<MediaKit />} />
-        <Route path="/dev" element={<DevPanel />} />
+        <Route path="/dev" element={<Home isDev />} />
       </Routes>
     </AnimatePresence>
   );

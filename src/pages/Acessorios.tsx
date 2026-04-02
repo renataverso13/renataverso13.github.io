@@ -1,16 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useData } from '../context/DataContext';
-import { Trash2, Plus, Save } from 'lucide-react';
+import { Trash2, Plus, Save, Key, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AddAcessorioModal } from '../components/AddAcessorioModal';
 import { EditAcessorioModal } from '../components/EditAcessorioModal';
 
 export const Acessorios: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
-  const { data, updateData } = useData();
+  const { data, updateData, saveToGitHub } = useData();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('github_token');
+    if (savedToken) setGithubToken(savedToken);
+  }, []);
+
+  const handleSave = async () => {
+    if (!githubToken) {
+      alert('Por favor, insira seu Token do GitHub no campo que aparece no topo para salvar permanentemente.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      localStorage.setItem('github_token', githubToken);
+      await saveToGitHub(data, githubToken);
+      alert('Alterações salvas com sucesso no GitHub! O site será atualizado em alguns minutos.');
+      navigate('/acessorios');
+    } catch (error: any) {
+      alert('Erro ao salvar no GitHub: ' + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleDelete = (id: number) => {
     updateData({ accessories: data.accessories.filter(a => a.id !== id) });
@@ -30,6 +55,24 @@ export const Acessorios: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
       exit={{ opacity: 0 }}
       className="pb-10 pt-[240px]"
     >
+      {isDev && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[340px] px-4">
+          <div className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-[#ea92be] flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-[#cd3b8c] text-xs font-bold mb-1">
+              <Key size={14} />
+              <span>TOKEN DO GITHUB</span>
+            </div>
+            <input 
+              type="password"
+              placeholder="Cole seu token aqui..."
+              value={githubToken}
+              onChange={(e) => setGithubToken(e.target.value)}
+              className="w-full px-3 py-2 border border-[#ea92be] rounded-xl text-sm focus:ring-2 focus:ring-magenta focus:outline-none bg-white"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="border-y-2 border-[#ea92be] py-2 mb-8 bg-[#fcf7f9] relative">
         <h2 className="font-serif text-[24px] font-bold text-[#cd3b8c] text-center tracking-tight">
           Acessórios para Kindle
@@ -102,11 +145,12 @@ export const Acessorios: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
       {isDev && (
         <div className="px-6 mt-8">
           <button 
-            onClick={() => navigate('/acessorios')}
-            className="w-full bg-[#ea92be] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#cd3b8c] transition-colors shadow-md text-lg"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full bg-[#ea92be] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#cd3b8c] transition-colors shadow-md text-lg disabled:opacity-50"
           >
-            <Save size={22} />
-            Salvar Alterações
+            {isSaving ? <Loader2 size={22} className="animate-spin" /> : <Save size={22} />}
+            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll } from 'motion/react';
-import { BookOpen, Tablet, Heart, Trophy, Link as LinkIcon, Play, Instagram, Youtube, Plus, Trash2, Save, Edit2 } from 'lucide-react';
+import { BookOpen, Tablet, Heart, Trophy, Link as LinkIcon, Play, Instagram, Youtube, Plus, Trash2, Save, Edit2, Key, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { EditSocialModal } from '../components/EditSocialModal';
@@ -11,58 +11,15 @@ import { EditProfileModal } from '../components/EditProfileModal';
 // ============================================================================
 // 🔄 ATUALIZAÇÃO AUTOMÁTICA OFICIAL E 100% GRATUITA (API DO INSTAGRAM)
 // ============================================================================
-// Para ter isso 100% de graça e sem limites de terceiros, usamos a API oficial da Meta.
-// Você só precisa gerar um "Token de Acesso" da sua própria conta.
-// 
-// PASSO A PASSO ATUALIZADO PARA PEGAR O TOKEN:
-// 1. Acesse https://developers.facebook.com/ e faça login com seu Facebook.
-// 2. Clique em "Meus Aplicativos" -> "Criar Aplicativo".
-// 3. Escolha "Outro" -> "Negócios" (Business).
-// 4. Na tela de adicionar produtos, clique em "Configurar" no quadro "Instagram" (o que tem o ícone rosa do Instagram).
-// 5. No menu lateral esquerdo, vá em "Configurações da API básica" (Basic Display).
-// 6. Role até o final e clique em "Create New App".
-// 7. No menu lateral esquerdo, vá em "Funções do app" -> "Funções".
-// 8. Role até "Instagram Testers" e adicione sua conta (@renataverso).
-// 9. Aceite o convite no seu Instagram (Configurações -> Apps e Sites -> Testador).
-// 10. Volte no painel do Facebook, vá em "Instagram" -> "Basic Display" -> "User Token Generator" e clique em "Generate Token".
-// 11. Copie aquele código gigante e cole aqui embaixo dentro das aspas:
 const INSTAGRAM_ACCESS_TOKEN = "IGAAX3WGOV96ZABZAFlpRzRPQlZAaakNmSGJSQmFfVHkyWDVjemZAVWHB4MU5OR2N0bGtFQXB1QXBSNWZAUazFCRjZAUaFlrUHVNZA3BPOEd5T1Nva25GT3NkUUIyY3UzXy02VWdUSWdYamNCWl90Y2tpaWpHNDhXRkNMNjg1NHhTZADBhcwZDZD"; 
-// ============================================================================
 
-// ============================================================================
-// 📱 DADOS MANUAIS (USADOS ENQUANTO O TOKEN NÃO FOR CONFIGURADO)
-// ============================================================================
 const REELS_DATA = [
-  { 
-    id: 1, 
-    img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&auto=format&fit=crop',
-    link: 'https://www.instagram.com/renataverso/reels/'
-  },
-  { 
-    id: 2, 
-    img: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=400&auto=format&fit=crop',
-    link: 'https://www.instagram.com/renataverso/reels/'
-  },
-  { 
-    id: 3, 
-    img: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=400&auto=format&fit=crop',
-    link: 'https://www.instagram.com/renataverso/reels/'
-  },
-  { 
-    id: 4, 
-    img: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=400&auto=format&fit=crop',
-    link: 'https://www.instagram.com/renataverso/reels/'
-  },
-  { 
-    id: 5, 
-    img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&auto=format&fit=crop',
-    link: 'https://www.instagram.com/renataverso/reels/'
-  },
-  { 
-    id: 6, 
-    img: 'https://images.unsplash.com/photo-1495640388908-05fa85288e61?q=80&w=400&auto=format&fit=crop',
-    link: 'https://www.instagram.com/renataverso/reels/'
-  }
+  { id: 1, img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=400&auto=format&fit=crop', link: 'https://www.instagram.com/renataverso/reels/' },
+  { id: 2, img: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=400&auto=format&fit=crop', link: 'https://www.instagram.com/renataverso/reels/' },
+  { id: 3, img: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=400&auto=format&fit=crop', link: 'https://www.instagram.com/renataverso/reels/' },
+  { id: 4, img: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=400&auto=format&fit=crop', link: 'https://www.instagram.com/renataverso/reels/' },
+  { id: 5, img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400&auto=format&fit=crop', link: 'https://www.instagram.com/renataverso/reels/' },
+  { id: 6, img: 'https://images.unsplash.com/photo-1495640388908-05fa85288e61?q=80&w=400&auto=format&fit=crop', link: 'https://www.instagram.com/renataverso/reels/' }
 ];
 
 const TikTokIcon = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
@@ -81,42 +38,41 @@ const getIcon = (iconName: string, className: string) => {
   }
 };
 
-// Cache for Instagram feed to avoid redundant fetches
 let cachedInstagramFeed: any[] | null = null;
 
 export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
-  const { data, updateData } = useData();
+  const { data, updateData, saveToGitHub } = useData();
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
   const [liveReels, setLiveReels] = useState(cachedInstagramFeed || REELS_DATA);
   const [isLoading, setIsLoading] = useState(!cachedInstagramFeed);
+  const [isSaving, setIsSaving] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
   const navigate = useNavigate();
 
-  // Modal states
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
   const [isAddButtonModalOpen, setIsAddButtonModalOpen] = useState(false);
   const [editingButton, setEditingButton] = useState<any | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   useEffect(() => {
+    const savedToken = localStorage.getItem('github_token');
+    if (savedToken) setGithubToken(savedToken);
+  }, []);
+
+  useEffect(() => {
     const fetchInstagramFeed = async () => {
       if (cachedInstagramFeed) return;
-
       if (!INSTAGRAM_ACCESS_TOKEN) {
         setLiveReels(REELS_DATA);
         setIsLoading(false);
         return;
       }
-
       try {
         const url = `https://graph.instagram.com/me/media?fields=id,media_type,media_url,thumbnail_url,permalink&access_token=${INSTAGRAM_ACCESS_TOKEN}`;
         const response = await fetch(url);
         const data = await response.json();
-        
-        if (data.error) {
-          throw new Error(data.error.message);
-        }
-
+        if (data.error) throw new Error(data.error.message);
         const reels = data.data
           .filter((post: any) => post.media_type === 'VIDEO')
           .slice(0, 6)
@@ -125,7 +81,6 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
             img: post.thumbnail_url || post.media_url,
             link: post.permalink
           }));
-        
         if (reels.length > 0) {
           cachedInstagramFeed = reels;
           setLiveReels(reels);
@@ -139,7 +94,6 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
         setIsLoading(false);
       }
     };
-
     fetchInstagramFeed();
   }, []);
 
@@ -149,6 +103,24 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
       setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
     });
   }, [scrollY]);
+
+  const handleSave = async () => {
+    if (!githubToken) {
+      alert('Por favor, insira seu Token do GitHub no campo que aparece no topo para salvar permanentemente.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      localStorage.setItem('github_token', githubToken);
+      await saveToGitHub(data, githubToken);
+      alert('Alterações salvas com sucesso no GitHub! O site será atualizado em alguns minutos.');
+      navigate('/');
+    } catch (error: any) {
+      alert('Erro ao salvar no GitHub: ' + error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleDeleteButton = (id: number) => {
     updateData({ buttons: data.buttons.filter(b => b.id !== id) });
@@ -181,7 +153,24 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
 
   return (
     <div className="relative z-10">
-      {/* Fixed Text Behind Content */}
+      {isDev && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-[340px] px-4">
+          <div className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-[#ea92be] flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-[#cd3b8c] text-xs font-bold mb-1">
+              <Key size={14} />
+              <span>TOKEN DO GITHUB</span>
+            </div>
+            <input 
+              type="password"
+              placeholder="Cole seu token aqui..."
+              value={githubToken}
+              onChange={(e) => setGithubToken(e.target.value)}
+              className="w-full px-3 py-2 border border-[#ea92be] rounded-xl text-sm focus:ring-2 focus:ring-magenta focus:outline-none bg-white"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="fixed top-[300px] left-0 w-full text-center z-0 flex flex-col items-center">
         <h1 className="font-serif font-bold text-[#cd3b8c] text-4xl mb-1">Renata Lugon</h1>
         <p className="text-[#cd3b8c] font-medium mb-4">Vídeos literários</p>
@@ -201,13 +190,11 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
         </div>
       </div>
 
-      {/* Transparent Spacer - allows fixed text behind to be visible */}
       <div 
         className="transition-all duration-300 ease-in-out" 
         style={{ height: isScrolled ? '260px' : '480px' }} 
       />
       
-      {/* Content with Background - covers the fixed text as it scrolls up */}
       <div className="bg-[#fcf7f9] pb-10 px-6 space-y-10 fade-in relative min-h-screen">
         <section className="grid grid-cols-3 gap-1.5 relative">
           {isLoading && INSTAGRAM_ACCESS_TOKEN && (
@@ -297,32 +284,25 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
               <Edit2 size={14} />
             </div>
           )}
-          {/* Badge Mídia Kit */}
           <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 bg-[#cd3b8c] text-white px-5 py-[3px] rounded-full text-[13px] font-medium whitespace-nowrap">
             Mídia Kit
           </div>
-          
-          {/* Link Icon Top Right */}
           {!isDev && (
             <div className="absolute top-3 right-3 text-[#cd3b8c]">
               <LinkIcon className="w-[18px] h-[18px] rotate-45" strokeWidth={2.5} />
             </div>
           )}
-
           <div className="flex flex-row items-center gap-4 mt-1">
-            {/* Arch Image Container - Double Border Effect */}
             <div className="relative w-[125px] h-[135px] shrink-0 arch-image bg-white border-[1.5px] border-[#cd3b8c] p-[5px]">
               <div className="w-full h-full arch-image overflow-hidden">
                 <img alt="Renata" className="w-full h-full object-cover" src={data.settings.profileImage} referrerPolicy="no-referrer" />
               </div>
             </div>
-            
             <div className="flex-1 text-left">
               <div className="mb-2">
                 <h3 className="font-serif font-bold text-[#cd3b8c] text-[20px] leading-[1.05] tracking-tight w-fit transform scale-x-[1.12] origin-left">Renata<br/>Lugon</h3>
                 <p className="text-[#cd3b8c] text-[8.5px] font-semibold mt-1">Vídeos literários</p>
               </div>
-              
               <div className="space-y-0">
                 <h4 className="font-bold text-[#cd3b8c] text-[10px]">Sobre mim</h4>
                 <p className="text-[#cd3b8c] text-[7.5px] leading-[1.15] pr-2 font-medium mt-0.5">
@@ -332,7 +312,6 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
             </div>
           </div>
         </div>
-
       </div>
 
       {isDev && (
@@ -345,11 +324,12 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
             Adicionar
           </button>
           <button 
-            onClick={() => navigate('/')}
-            className="flex-1 bg-[#ea92be] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#cd3b8c] transition-colors shadow-lg"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex-1 bg-[#ea92be] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#cd3b8c] transition-colors shadow-lg disabled:opacity-50"
           >
-            <Save size={20} />
-            Salvar
+            {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+            {isSaving ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
       )}
@@ -391,4 +371,3 @@ export const Home: React.FC<{ isDev?: boolean }> = ({ isDev }) => {
     </div>
   );
 };
-

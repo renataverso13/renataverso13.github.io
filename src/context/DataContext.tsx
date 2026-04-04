@@ -39,6 +39,7 @@ export type SettingsData = {
 };
 
 export type AppData = {
+  version?: number;
   buttons: ButtonData[];
   books: BookData[];
   accessories: AccessoryData[];
@@ -57,12 +58,28 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 const REPO_OWNER = "renataverse";
 const REPO_NAME = "renataverse.github.io";
 const FILE_PATH = "src/data.json";
+const STORAGE_KEY = 'renataverso_data';
+const STORAGE_VERSION_KEY = 'renataverso_data_version';
+
+// Versão embutida no bundle no momento do build
+const BUNDLE_VERSION = (initialData as AppData).version ?? 0;
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<AppData>(() => {
-    const saved = localStorage.getItem('renataverso_data');
-    if (saved) {
-      try {
+    // Verifica se o localStorage tem dados de uma versão mais antiga que o bundle atual
+    try {
+      const savedVersionStr = localStorage.getItem(STORAGE_VERSION_KEY);
+      const savedVersion = savedVersionStr ? parseInt(savedVersionStr, 10) : -1;
+
+      // Se o bundle é mais novo que o que está salvo, descarta o localStorage
+      if (BUNDLE_VERSION > savedVersion) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_VERSION_KEY, String(BUNDLE_VERSION));
+        return initialData as AppData;
+      }
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
         const parsed = JSON.parse(saved);
         return {
           ...initialData,
@@ -72,15 +89,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...(parsed.settings || {})
           }
         } as AppData;
-      } catch (e) {
-        console.error("Failed to parse saved data", e);
       }
+    } catch (e) {
+      console.error("Falha ao ler dados salvos:", e);
     }
     return initialData as AppData;
   });
 
   useEffect(() => {
-    localStorage.setItem('renataverso_data', JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(STORAGE_VERSION_KEY, String(data.version ?? BUNDLE_VERSION));
   }, [data]);
 
   const updateData = (newData: Partial<AppData>) => {
@@ -89,7 +107,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const saveToGitHub = async (updatedData: AppData, token: string) => {
     try {
-      // 1. Get the current file to get its SHA
+      // Incrementa a versão a cada salvamento para invalidar o localStorage de todos os usuários
+      const newVersion = (updatedData.version ?? BUNDLE_VERSION) + 1;
+      const dataWithVersion: AppData = { ...updatedData, version: newVersion };
+
+      // 1. Busca o arquivo atual para obter o SHA
       const getFileResponse = await fetch(
         `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`,
         {
@@ -107,9 +129,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const fileData = await getFileResponse.json();
       const sha = fileData.sha;
 
-      // 2. Update the file
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(updatedData, null, 2))));
-      
+      // 2. Atualiza o arquivo com a nova versão
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataWithVersion, null, 2))));
+
       const updateResponse = await fetch(
         `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`,
         {
@@ -120,7 +142,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            message: "Update data via Dev Panel",
+            message: `chore: update site data (v${newVersion})`,
             content: content,
             sha: sha,
           }),
@@ -132,7 +154,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(error.message || "Falha ao atualizar arquivo no GitHub");
       }
 
-      console.log("Dados salvos no GitHub com sucesso!");
+      // Atualiza o estado local com a nova versão também
+      setData(dataWithVersion);
+
+      console.log(`Dados salvos no GitHub com sucesso! Versão: ${newVersion}`);
     } catch (error) {
       console.error("Erro ao salvar no GitHub:", error);
       throw error;

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, AnimatePresence } from 'motion/react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import { Settings, X, Key } from 'lucide-react';
+import { Settings, X, Key, ArrowLeft } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { data } = useData();
   const location = useLocation();
+  const navigate = useNavigate();
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
   
@@ -15,7 +16,11 @@ export const Header: React.FC = () => {
   const [isTokenPanelOpen, setIsTokenPanelOpen] = useState(false);
   
   const isDev = location.pathname.includes('/dev');
-  const isHome = location.pathname === '/' || location.pathname === '/dev' || location.pathname === '/mediakit';
+  const isHome = location.pathname === '/' || location.pathname === '/dev';
+  const isMediaKit = location.pathname === '/mediakit';
+  
+  // Páginas que devem mostrar o botão de voltar
+  const showBackButton = !isHome;
 
   useEffect(() => {
     const savedToken = localStorage.getItem('github_token');
@@ -37,21 +42,30 @@ export const Header: React.FC = () => {
     localStorage.setItem('github_token', newToken);
   };
 
+  const handleBack = () => {
+    // Se estiver em uma rota /dev, volta para /dev, senão volta para /
+    if (isDev) {
+      navigate('/dev');
+    } else {
+      navigate('/');
+    }
+  };
+
   // Determine target values based on page and scroll state
-  const headerHeight = isHome ? (isScrolled ? 100 : 250) : 200;
+  const headerHeight = (isHome || isMediaKit) ? (isScrolled ? 100 : 250) : 200;
   
-  const wavePath = (isHome && isScrolled) 
+  const wavePath = ((isHome || isMediaKit) && isScrolled) 
     ? "M0,118 Q300,118 600,118 T1200,118 L1200,125 L0,125 Z" 
     : "M0,50 Q300,120 600,50 T1200,50 L1200,125 L0,125 Z";
 
-  const waveHeight = isHome ? 20 : 20;
+  const waveHeight = (isHome || isMediaKit) ? 20 : 20;
 
   const imgConfig = {
-    top: isHome ? 64 : 90,
-    left: (isHome && isScrolled) ? 24 : '50%',
-    x: (isHome && isScrolled) ? 0 : '-50%',
-    size: isHome ? (isScrolled ? 50 : 224) : 120,
-    borderRadius: isHome ? '160px 160px 0 0' : '100px 100px 0 0'
+    top: (isHome || isMediaKit) ? 64 : 90,
+    left: ((isHome || isMediaKit) && isScrolled) ? 24 : '50%',
+    x: ((isHome || isMediaKit) && isScrolled) ? 0 : '-50%',
+    size: (isHome || isMediaKit) ? (isScrolled ? 50 : 224) : 120,
+    borderRadius: (isHome || isMediaKit) ? '160px 160px 0 0' : '100px 100px 0 0'
   };
 
   return (
@@ -61,10 +75,24 @@ export const Header: React.FC = () => {
       transition={{ 
         duration: 0.4, 
         ease: [0.4, 0, 0.2, 1],
-        delay: (isHome && !isScrolled) ? 0.1 : 0 
+        delay: ((isHome || isMediaKit) && !isScrolled) ? 0.1 : 0 
       }}
-      className={`${isHome ? 'fixed' : 'absolute'} top-0 left-0 right-0 z-50 bg-magenta bg-pattern`}
+      className={`${(isHome || isMediaKit) ? 'fixed' : 'absolute'} top-0 left-0 right-0 z-50 bg-magenta bg-pattern`}
     >
+      {/* Back Button */}
+      {showBackButton && (
+        <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
+          <button 
+            onClick={handleBack}
+            className="bg-white/40 hover:bg-white/60 text-white p-3 rounded-full backdrop-blur-md transition-all active:scale-95 border-2 border-white shadow-2xl hover:shadow-3xl"
+            title="Voltar"
+            style={{ minWidth: '48px', minHeight: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ArrowLeft size={24} />
+          </button>
+        </div>
+      )}
+
       {/* Dev Mode Settings Button */}
       {isDev && (
         <>
@@ -81,7 +109,7 @@ export const Header: React.FC = () => {
             )}
           </AnimatePresence>
 
-          <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
+          <div className={`fixed top-4 ${showBackButton ? 'left-20' : 'left-4'} z-[9999] pointer-events-auto`}>
           <button 
             onClick={() => setIsTokenPanelOpen(!isTokenPanelOpen)}
             className="bg-white/40 hover:bg-white/60 text-white p-3 rounded-full backdrop-blur-md transition-all active:scale-95 border-2 border-white shadow-2xl hover:shadow-3xl"
@@ -136,7 +164,7 @@ export const Header: React.FC = () => {
             transition={{ 
               duration: 0.4, 
               ease: [0.4, 0, 0.2, 1],
-              delay: (isHome && !isScrolled) ? 0.1 : 0 
+              delay: ((isHome || isMediaKit) && !isScrolled) ? 0.1 : 0 
             }}
             fill="#fcf7f9"
           />
@@ -146,7 +174,7 @@ export const Header: React.FC = () => {
       {/* Fade Mask (only for home scroll) */}
       <motion.div 
         initial={false}
-        animate={{ opacity: (isHome && isScrolled) ? 1 : 0 }}
+        animate={{ opacity: ((isHome || isMediaKit) && isScrolled) ? 1 : 0 }}
         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         className="absolute top-full left-0 right-0 h-24 bg-gradient-to-b from-[#fcf7f9] via-[#fcf7f9]/80 to-transparent pointer-events-none" 
       />
@@ -164,7 +192,7 @@ export const Header: React.FC = () => {
         transition={{ 
           duration: 0.4, 
           ease: [0.4, 0, 0.2, 1],
-          delay: (isHome && !isScrolled) ? 0.1 : 0 
+          delay: ((isHome || isMediaKit) && !isScrolled) ? 0.1 : 0 
         }}
         className="absolute z-10"
       >
@@ -172,7 +200,7 @@ export const Header: React.FC = () => {
           initial={false}
           animate={{ borderRadius: imgConfig.borderRadius }}
           style={{ borderRadius: imgConfig.borderRadius }}
-          className={`w-full h-full bg-[#fcf7f9] overflow-hidden border-[#fcf7f9] transition-all duration-300 ease-in-out ${(isHome && isScrolled) ? 'border-2 shadow-sm' : 'border-4 shadow-md'}`}
+          className={`w-full h-full bg-[#fcf7f9] overflow-hidden border-[#fcf7f9] transition-all duration-300 ease-in-out ${((isHome || isMediaKit) && isScrolled) ? 'border-2 shadow-sm' : 'border-4 shadow-md'}`}
         >
           <img src={data.settings.profileImage} alt="Renata Lugon" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
         </motion.div>
@@ -182,13 +210,13 @@ export const Header: React.FC = () => {
       <motion.div
         initial={false}
         animate={{ 
-          opacity: (isHome && isScrolled) ? 1 : 0,
-          x: (isHome && isScrolled) ? 0 : -20,
+          opacity: ((isHome || isMediaKit) && isScrolled) ? 1 : 0,
+          x: ((isHome || isMediaKit) && isScrolled) ? 0 : -20,
         }}
         transition={{ 
-          duration: (isHome && isScrolled) ? 0.4 : 0.1, 
+          duration: ((isHome || isMediaKit) && isScrolled) ? 0.4 : 0.1, 
           ease: "easeOut",
-          delay: (isHome && isScrolled) ? 0.42 : 0 
+          delay: ((isHome || isMediaKit) && isScrolled) ? 0.42 : 0 
         }}
         className="absolute top-[73px] left-[82px] z-0"
       >

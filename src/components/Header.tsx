@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, useScroll, AnimatePresence } from 'motion/react';
 import { useLocation } from 'react-router-dom';
 import { useData } from '../context/DataContext';
-import { Settings, X, Key, Save, Loader2 } from 'lucide-react';
-// Token será carregado via fetch da API do GitHub
+import { Settings, X, Key } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { data, saveToGitHub } = useData();
+  const { data } = useData();
   const location = useLocation();
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,7 +13,6 @@ export const Header: React.FC = () => {
   // Token state
   const [githubToken, setGithubToken] = useState('');
   const [isTokenPanelOpen, setIsTokenPanelOpen] = useState(false);
-  const [isSavingToken, setIsSavingToken] = useState(false);
   
   const isDev = location.pathname.includes('/dev');
   const isHome = location.pathname === '/' || location.pathname === '/dev' || location.pathname === '/mediakit';
@@ -37,77 +35,6 @@ export const Header: React.FC = () => {
     const newToken = e.target.value;
     setGithubToken(newToken);
     localStorage.setItem('github_token', newToken);
-  };
-
-  const handleSaveTokenToCloud = async () => {
-    if (!githubToken || githubToken.trim() === '') {
-      alert('Por favor, insira um token antes de salvar.');
-      return;
-    }
-
-    setIsSavingToken(true);
-    try {
-      const getFileResponse = await fetch(
-        `https://api.github.com/repos/renataverse/renataverse.github.io/contents/.github/token.json`,
-        {
-          headers: {
-            Authorization: `token ${githubToken}`,
-            Accept: 'application/vnd.github.v3+json',
-          },
-        }
-      );
-
-      if (!getFileResponse.ok) {
-        const errorData = await getFileResponse.json();
-        console.error('[DEBUG] Erro ao buscar arquivo:', errorData);
-        if (getFileResponse.status === 404) {
-          throw new Error('Arquivo config.json não encontrado. Tente novamente em alguns segundos.');
-        } else if (getFileResponse.status === 401 || getFileResponse.status === 403) {
-          throw new Error('Token inválido ou sem permissão de escrita. Verifique se o token tem permissão "repo".');
-        }
-        throw new Error(`Erro ${getFileResponse.status}: ${errorData.message || 'Falha ao buscar arquivo'}`);
-      }
-
-      const fileData = await getFileResponse.json();
-      const sha = fileData.sha;
-
-      const newConfig = { token: githubToken };
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(newConfig, null, 2))));
-
-      console.log('[DEBUG] Enviando atualização do token para o GitHub...');
-      const updateResponse = await fetch(
-        `https://api.github.com/repos/renataverse/renataverse.github.io/contents/.github/token.json`,
-        {
-          method: 'PUT',
-          headers: {
-            Authorization: `token ${githubToken}`,
-            Accept: 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: 'chore: update github token config',
-            content: content,
-            sha: sha,
-          }),
-        }
-      );
-
-      if (!updateResponse.ok) {
-        const errorData = await updateResponse.json();
-        console.error('[DEBUG] Erro ao atualizar arquivo:', errorData);
-        throw new Error(`Falha ao salvar o token (${updateResponse.status}): ${errorData.message || 'Erro desconhecido'}`);
-      }
-
-      console.log('[DEBUG] Token salvo com sucesso no GitHub!');
-
-      alert('✅ Token salvo com sucesso! Agora ele será carregado automaticamente em todos os seus dispositivos.');
-      setIsTokenPanelOpen(false);
-    } catch (error: any) {
-      console.error('[DEBUG] Erro completo:', error);
-      alert('❌ Erro ao salvar o token: ' + error.message);
-    } finally {
-      setIsSavingToken(false);
-    }
   };
 
   // Determine target values based on page and scroll state
@@ -185,16 +112,8 @@ export const Header: React.FC = () => {
                     className="w-full px-3 py-2 border border-[#ea92be]/30 rounded-xl text-sm focus:border-[#ea92be] focus:outline-none bg-[#fcf7f9] transition-colors"
                   />
                   <p className="text-[10px] text-[#cd3b8c]/70 leading-tight font-medium">
-                    🔐 O token é necessário para salvar as alterações permanentemente no GitHub.
+                    🔐 O token é salvo localmente neste navegador e usado para salvar alterações no GitHub.
                   </p>
-                  <button
-                    onClick={handleSaveTokenToCloud}
-                    disabled={isSavingToken}
-                    className="w-full bg-[#ea92be] text-white py-2 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-[#cd3b8c] transition-colors disabled:opacity-50 text-sm"
-                  >
-                    {isSavingToken ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                    {isSavingToken ? 'Salvando...' : 'Salvar na Nuvem'}
-                  </button>
                 </div>
               </motion.div>
             )}
